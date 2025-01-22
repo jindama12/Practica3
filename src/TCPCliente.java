@@ -15,6 +15,7 @@ public class TCPCliente {
         frame.pack();
         //frame.setVisible(true);
 
+        //Preguntar por nombre de usuario y comprobar si existe
         boolean usuarioExiste = false;
         String nombreUsuario;
         do {
@@ -25,10 +26,12 @@ public class TCPCliente {
         System.exit(0);
     }
 
+    //Función que muestra el cuadro de diálogo para pedir el nombre de usuario
     private static String pedirNombreUsuario() {
         return JOptionPane.showInputDialog(null,"Introduce el nombre de usuario", "Nombre de usuario", JOptionPane.PLAIN_MESSAGE);
     }
 
+    //Función que comprueba si el nombre de usuario introducido en el cuadro de diálogo ya está en uso en el servidor
     private static boolean existeUsuario(String nombreUsuario) {
         boolean existe = false;
         try {

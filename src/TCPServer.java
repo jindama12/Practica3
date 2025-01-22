@@ -4,40 +4,29 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class TCPServer {
+    public static ArrayList<String> nombres = new ArrayList<>();
+
     public static void main(String[] args) {
-        ArrayList<String> nombres = new ArrayList<String>();
+        //Carga de datos de prueba
         nombres.add("Jose");
         nombres.add("Hugo");
 
-        int puerto = 2025;
+        while (true) {
+            int puerto = 2025;
+            ServerSocket servidor = null;
 
-        ServerSocket servidor = null;
-        try {
-            servidor = new ServerSocket(puerto);
-
-            while (true) {
+            try {
+                servidor = new ServerSocket(puerto);
                 Socket cliente = servidor.accept();
-                InputStream is = cliente.getInputStream();
-                DataInputStream dis = new DataInputStream(is);
 
-                OutputStream os = cliente.getOutputStream();
-                DataOutputStream dos = new DataOutputStream(os);
+                //Inicio del hilo
+                Thread hilo = new Thread(new HiloServer(cliente));
+                hilo.start();
 
-                String usuarioBuscar = dis.readUTF();
-                System.out.println(usuarioBuscar);
-
-                boolean existe = false;
-                for (String usuario : nombres) {
-                    if (usuario.toLowerCase().equals(usuarioBuscar.toLowerCase())) {
-                        existe = true;
-                    }
-                }
-
-                dos.writeBoolean(existe);
+                servidor.close();
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
             }
-
-        } catch (IOException e) {
-            System.err.println(e.getMessage());
         }
     }
 }
