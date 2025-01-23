@@ -43,7 +43,7 @@ public class HiloServer implements Runnable {
             } while (existe);
 
         } catch (IOException e) {
-            System.err.println(e.getMessage());
+            //System.err.println(e.getMessage());
         }
 
         return usuario;

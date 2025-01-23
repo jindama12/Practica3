@@ -25,7 +25,7 @@ public class TCPServer {
 
                 servidor.close();
             } catch (IOException e) {
-                System.err.println(e.getMessage());
+                //System.err.println(e.getMessage());
             }
         }
     }
