@@ -42,6 +42,12 @@ public class HiloServer implements Runnable {
                 dos.writeBoolean(existe);
             } while (existe);
 
+            boolean salida = false;
+
+            while(!salida) {
+
+            }
+
         } catch (IOException e) {
             //System.err.println(e.getMessage());
         }

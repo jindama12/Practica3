@@ -23,6 +23,14 @@ public class TCPCliente {
             usuarioExiste = existeUsuario(nombreUsuario);
         } while(usuarioExiste == true);
 
+        boolean salida = false;
+
+        while(!salida) {
+
+        }
+
+        enviarSalida();
+
         System.exit(0);
     }
 
@@ -56,5 +64,18 @@ public class TCPCliente {
             System.err.println(e.getMessage());
         }
         return existe;
+    }
+
+    private static void enviarSalida() {
+        try {
+            Socket cliente = new Socket("localhost", puerto);
+
+            OutputStream os = cliente.getOutputStream();
+            DataOutputStream dos = new DataOutputStream(os);
+
+            dos.writeUTF("aeEg6UK6jCzxiCCKm7gakpb08KBzpY");
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+        }
     }
 }
