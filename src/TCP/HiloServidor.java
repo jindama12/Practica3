@@ -47,7 +47,6 @@ public class HiloServidor implements Runnable {
             while ((mensaje = dis.readUTF()) != null) {
                 enviarMensaje(nombreUsuario + ": " + mensaje);
             }
-            desconectarCliente();
         } catch (IOException e) {
             System.err.println(e.getMessage());
         } finally {
