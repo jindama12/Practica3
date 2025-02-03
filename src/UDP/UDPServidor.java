@@ -10,7 +10,7 @@ public class UDPServidor {
     public static final ArrayList<String> nombresUsuarios = new ArrayList<>();
     public static final ArrayList<InetAddress> direccionesClientes = new ArrayList<>();
     public static final ArrayList<Integer> puertosClientes = new ArrayList<>();
-    public static final Map<String, Long> ttlClientes = new HashMap<>(); // Para rastrear el TTL de cada cliente
+    public static final Map<String, Long> ttlClientes = new HashMap<>();
 
     public static void main(String[] args) {
         int puerto = 12345;
@@ -19,24 +19,23 @@ public class UDPServidor {
         try {
             DatagramSocket socketServidor = new DatagramSocket(puerto);
 
-            // Hilo para verificar el TTL de los clientes
             Thread verificadorTTL = new Thread(() -> {
                 while (true) {
                     try {
-                        Thread.sleep(10000); // Verificar cada 10 segundos
+                        Thread.sleep(10000);
                         synchronized (nombresUsuarios) {
                             long tiempoActual = System.currentTimeMillis();
                             for (int i = 0; i < nombresUsuarios.size(); i++) {
                                 String usuario = nombresUsuarios.get(i);
                                 if (tiempoActual - ttlClientes.getOrDefault(usuario, 0L) > 10000) {
-                                    // El TTL del cliente ha expirado
                                     System.out.println("Usuario desconectado: " + usuario);
                                     enviarMensajeATodos("Usuario desconectado: " + usuario);
                                     nombresUsuarios.remove(i);
                                     direccionesClientes.remove(i);
                                     puertosClientes.remove(i);
                                     ttlClientes.remove(usuario);
-                                    i--; // Ajustar el índice después de eliminar un elemento
+                                    i--;
+                                    enviarListaUsuarios();
                                 }
                             }
                         }
@@ -56,26 +55,18 @@ public class UDPServidor {
                 InetAddress direccionCliente = paquete.getAddress();
                 int puertoCliente = paquete.getPort();
 
-                // Verificar si el mensaje es una actualización de TTL
                 if (mensaje.startsWith("TTL:")) {
-                    String usuario = mensaje.substring(4); // Extraer el nombre de usuario
-                    ttlClientes.put(usuario, System.currentTimeMillis()); // Actualizar el TTL
-                }
-                // Verificar si el mensaje es un nombre de usuario nuevo
-                else if (!nombresUsuarios.contains(mensaje) && !mensaje.contains(":")) {
+                    String usuario = mensaje.substring(4);
+                    ttlClientes.put(usuario, System.currentTimeMillis());
+                } else if (!nombresUsuarios.contains(mensaje) && !mensaje.contains(":")) {
                     nombresUsuarios.add(mensaje);
                     direccionesClientes.add(direccionCliente);
                     puertosClientes.add(puertoCliente);
-                    ttlClientes.put(mensaje, System.currentTimeMillis()); // Registrar el TTL inicial
-
-                    // Enviar confirmación al cliente de que el nombre es válido
+                    ttlClientes.put(mensaje, System.currentTimeMillis());
                     enviarMensaje("valido", direccionCliente, puertoCliente);
-
-                    // Notificar a todos los clientes que un nuevo usuario se ha conectado
                     enviarMensajeATodos("Usuario conectado: " + mensaje);
-                }
-                // Si el mensaje contiene ":", es un mensaje de chat normal
-                else if (mensaje.contains(":")) {
+                    enviarListaUsuarios();
+                } else if (mensaje.contains(":")) {
                     enviarMensajeATodos(mensaje);
                 }
             }
@@ -94,5 +85,14 @@ public class UDPServidor {
         for (int i = 0; i < direccionesClientes.size(); i++) {
             enviarMensaje(mensaje, direccionesClientes.get(i), puertosClientes.get(i));
         }
+    }
+
+    private static void enviarListaUsuarios() throws IOException {
+        StringBuilder listaUsuarios = new StringBuilder("USUARIOS_CONECTADOS:");
+        for (String usuario : nombresUsuarios) {
+            listaUsuarios.append(usuario).append(",");
+        }
+        String lista = listaUsuarios.toString();
+        enviarMensajeATodos(lista);
     }
 }

@@ -10,6 +10,8 @@ public class UDPCliente {
     private JFrame ventana;
     private JTextArea areaChat;
     private JTextField campoMensaje;
+    private JList<String> listaUsuarios;
+    private DefaultListModel<String> modeloListaUsuarios;
 
     private String nombreUsuario;
     private int puerto = 12345;
@@ -49,7 +51,6 @@ public class UDPCliente {
 
             crearInterfaz();
 
-            // Hilo para escuchar mensajes del servidor
             Thread escucharMensajes = new Thread(() -> {
                 try {
                     byte[] buffer = new byte[1024];
@@ -57,7 +58,17 @@ public class UDPCliente {
                     while (conectado) {
                         socket.receive(paquete);
                         String mensaje = new String(paquete.getData(), 0, paquete.getLength());
-                        areaChat.append(mensaje + "\n");
+                        if (mensaje.startsWith("USUARIOS_CONECTADOS:")) {
+                            String[] usuarios = mensaje.substring("USUARIOS_CONECTADOS:".length()).split(",");
+                            modeloListaUsuarios.clear();
+                            for (String usuario : usuarios) {
+                                if (!usuario.isEmpty()) {
+                                    modeloListaUsuarios.addElement(usuario);
+                                }
+                            }
+                        } else {
+                            areaChat.append(mensaje + "\n");
+                        }
                     }
                 } catch (IOException e) {
                     System.err.println(e.getMessage());
@@ -65,12 +76,11 @@ public class UDPCliente {
             });
             escucharMensajes.start();
 
-            // Hilo para actualizar el TTL en el servidor
             Thread ttlThread = new Thread(() -> {
                 try {
                     while (conectado) {
                         enviarMensaje("TTL:" + nombreUsuario);
-                        Thread.sleep(5000); // Actualizar el TTL cada 5 segundos
+                        Thread.sleep(5000);
                     }
                 } catch (InterruptedException | IOException e) {
                     System.err.println(e.getMessage());
@@ -86,8 +96,15 @@ public class UDPCliente {
     public void crearInterfaz() {
         ventana = new JFrame("Chat - Usuario: " + nombreUsuario);
         ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventana.setSize(500, 400);
+        ventana.setSize(700, 400);
         ventana.setLayout(new BorderLayout());
+
+        // Panel de usuarios conectados
+        modeloListaUsuarios = new DefaultListModel<>();
+        listaUsuarios = new JList<>(modeloListaUsuarios);
+        JScrollPane scrollUsuarios = new JScrollPane(listaUsuarios);
+        scrollUsuarios.setPreferredSize(new Dimension(150, 400));
+        ventana.add(scrollUsuarios, BorderLayout.WEST);
 
         areaChat = new JTextArea();
         areaChat.setEditable(false);
