@@ -9,9 +9,11 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class TCPCliente {
-    private JFrame ventana;
-    private JTextArea areaChat;
-    private JTextField campoMensaje;
+    private JFrame frame;
+    private JTextArea chat;
+    private JTextField mensaje;
+    private JList<String> listaUsuarios;
+    private DefaultListModel<String> usuariosConectados;
 
     private String nombreUsuario;
     private int puerto = 12345;
@@ -52,7 +54,17 @@ public class TCPCliente {
                 try {
                     String mensaje;
                     while ((mensaje = dis.readUTF()) != null) {
-                        areaChat.append(mensaje + "\n");
+                        if (mensaje.startsWith("USUARIOS_CONECTADOS:")) {
+                            String[] usuarios = mensaje.substring("USUARIOS_CONECTADOS:".length()).split(",");
+                            usuariosConectados.clear();
+                            for (String usuario : usuarios) {
+                                if (!usuario.isEmpty()) {
+                                    usuariosConectados.addElement(usuario);
+                                }
+                            }
+                        } else {
+                            chat.append(mensaje + "\n");
+                        }
                     }
                 } catch (IOException e) {
                     System.exit(0);
@@ -65,39 +77,46 @@ public class TCPCliente {
     }
 
     public void crearInterfaz() {
-        ventana = new JFrame("Chat - Usuario: " + nombreUsuario);
-        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        ventana.setSize(500, 400);
-        ventana.setLayout(new BorderLayout());
+        frame = new JFrame("Chat - Usuario: " + nombreUsuario);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(1000, 500);
+        frame.setLayout(new BorderLayout());
 
-        areaChat = new JTextArea();
-        areaChat.setEditable(false);
-        JScrollPane scroll = new JScrollPane(areaChat);
-        ventana.add(scroll, BorderLayout.CENTER);
+        // Panel de usuarios conectados
+        usuariosConectados = new DefaultListModel<>();
+        listaUsuarios = new JList<>(usuariosConectados);
+        JScrollPane scrollUsuarios = new JScrollPane(listaUsuarios);
+        scrollUsuarios.setPreferredSize(new Dimension(150, 400));
+        frame.add(scrollUsuarios, BorderLayout.WEST);
 
-        campoMensaje = new JTextField();
+        chat = new JTextArea();
+        chat.setEditable(false);
+        JScrollPane scroll = new JScrollPane(chat);
+        frame.add(scroll, BorderLayout.CENTER);
+
+        mensaje = new JTextField();
         JButton botonEnviar = new JButton("Enviar");
 
         ActionListener enviarAccion = e -> {
             try {
-                String mensaje = campoMensaje.getText().trim();
+                String mensaje = this.mensaje.getText().trim();
                 if (!mensaje.isEmpty()) {
                     dos.writeUTF(mensaje);
-                    campoMensaje.setText("");
+                    this.mensaje.setText("");
                 }
             } catch (IOException ex) {
                 System.err.println(ex.getMessage());
             }
         };
 
-        campoMensaje.addActionListener(enviarAccion);
+        mensaje.addActionListener(enviarAccion);
         botonEnviar.addActionListener(enviarAccion);
 
         JPanel panelEntrada = new JPanel(new BorderLayout());
-        panelEntrada.add(campoMensaje, BorderLayout.CENTER);
+        panelEntrada.add(mensaje, BorderLayout.CENTER);
         panelEntrada.add(botonEnviar, BorderLayout.EAST);
-        ventana.add(panelEntrada, BorderLayout.SOUTH);
+        frame.add(panelEntrada, BorderLayout.SOUTH);
 
-        ventana.setVisible(true);
+        frame.setVisible(true);
     }
 }
