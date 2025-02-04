@@ -12,7 +12,6 @@ public class TCPServidor {
     public static void main(String[] args) {
         int puerto = 12345;
 
-        System.out.println("Servidor iniciado en el puerto " + puerto);
         try {
             ServerSocket socketServidor = new ServerSocket(puerto);
 

@@ -15,7 +15,6 @@ public class UDPServidor {
     public static void main(String[] args) {
         int puerto = 12345;
 
-        System.out.println("Servidor iniciado en el puerto " + puerto);
         try {
             DatagramSocket socketServidor = new DatagramSocket(puerto);
 
@@ -28,7 +27,6 @@ public class UDPServidor {
                             for (int i = 0; i < nombresUsuarios.size(); i++) {
                                 String usuario = nombresUsuarios.get(i);
                                 if (tiempoActual - ttlClientes.getOrDefault(usuario, 0L) > 10000) {
-                                    System.out.println("Usuario desconectado: " + usuario);
                                     enviarMensajeATodos("Usuario desconectado: " + usuario);
                                     nombresUsuarios.remove(i);
                                     direccionesClientes.remove(i);
